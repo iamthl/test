@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  background-color: #f7fafc; /* Chakra UI gray.50 */
+}
+
+body {
+  background-color: #f7fafc; /* Chakra UI gray.50 */
+} 
