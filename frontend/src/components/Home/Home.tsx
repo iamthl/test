@@ -313,25 +313,24 @@ const Home: React.FC = () => {
           )}
           {/* TODO: Insert API data for asset table (type, value, interest, maturity) here */}
           <div className="overflow-x-auto">
-            <table className="min-w-full">
+            <table className="w-full text-left text-white">
               <thead>
-                <tr className="border-b">
-                  <th className="text-left py-2">Loại tài sản</th>
-                  <th className="text-right py-2">Giá trị hiện tại</th>
-                  <th className="text-right py-2">Lãi suất/Lợi nhuận kỳ vọng</th>
-                  <th className="text-right py-2">Ngày đáo hạn</th>
-                  <th className="text-right py-2">Thao tác</th>
+              <tr className="border-b border-[#393945]">
+                  <th className="py-2 font-medium">Loại tài sản</th>
+                  <th className="py-2 font-medium">Giá trị hiện tại</th>
+                  <th className="py-2 font-medium">Lãi suất/Lợi nhuận kỳ vọng</th>
+                  <th className="py-2 font-medium">Ngày đáo hạn</th>
+                  <th className="py-2 font-medium">Thao tác</th>
                 </tr>
               </thead>
               <tbody>
                 {assets.map((asset: Asset, idx: number) => (
-                  <tr key={asset.id} className="border-b">
+                  <tr key={asset.id} className="border-b border-[#393945]">
                     <td className="py-2">{asset.type}</td>
-                    <td className="text-right py-2">{formatCurrency(asset.currentValue)} VND</td>
-                    <td className="text-right py-2">{asset.interestRate}%</td>
-                    <td className="text-right py-2">{asset.maturityDate || 'N/A'}</td>
+                    <td className="py-2">{formatCurrency(asset.currentValue)} VND</td>
+                    <td className="py-2">{asset.interestRate}%</td>
+                    <td className="ppy-2">{asset.maturityDate || 'N/A'}</td>
                     <td className="py-2">
-                      <div className="flex justify-end">
                         <MenuRoot>
                           <MenuTrigger asChild>
                             <IconButton variant="ghost" color="inherit" size="sm">
@@ -353,7 +352,6 @@ const Home: React.FC = () => {
                             </button>
                           </MenuContent>
                         </MenuRoot>
-                      </div>
                     </td>
                   </tr>
                 ))}
