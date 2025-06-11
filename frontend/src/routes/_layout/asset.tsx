@@ -5,16 +5,10 @@ import {
   Heading,
   Table,
   VStack,
-  IconButton,
-  MenuRoot,
-  MenuTrigger,
-  MenuContent,
 } from "@chakra-ui/react"
 import { useQuery } from "@tanstack/react-query"
-import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import { createFileRoute, useNavigate, Outlet, useMatches } from "@tanstack/react-router"
 import { FiSearch } from "react-icons/fi"
-import { BsThreeDotsVertical } from "react-icons/bs"
-import { FaEdit, FaTrash } from "react-icons/fa"
 import { z } from "zod"
 
 import { ItemsService } from "@/client"
@@ -128,28 +122,8 @@ function AssetsTable() {
                 <Table.Cell truncate maxW="sm">{cumulativeReturn}</Table.Cell>
                 <Table.Cell truncate maxW="sm">{investmentDuration}</Table.Cell>
                 <Table.Cell truncate maxW="sm">
-                        <MenuRoot>
-                          <MenuTrigger asChild>
-                            <IconButton variant="ghost" color="inherit" size="sm">
-                              <BsThreeDotsVertical />
-                            </IconButton>
-                          </MenuTrigger>
-                          <MenuContent>
-                            <button
-                              className="flex items-center gap-2 w-full px-4 py-2 text-white hover:bg-[#18191B]"
-                              onClick={() => { handleEdit(idx); }}
-                            >
-                              <FaEdit /> Chỉnh sửa
-                            </button>
-                            <button
-                              className="flex items-center gap-2 w-full px-4 py-2 text-[#FF2A3C] hover:bg-[#18191B]"
-                              onClick={() => { handleDelete(idx); }}
-                            >
-                              <FaTrash /> Xoá
-                            </button>
-                          </MenuContent>
-                        </MenuRoot>
-                  </Table.Cell>
+                  <AssetActionsMenu item={item} />
+                </Table.Cell>
               </Table.Row>
             )
           })}
@@ -173,13 +147,21 @@ function AssetsTable() {
 }
 
 function Assets() {
+  const matches = useMatches();
+  const isAssetDetailPageActive = matches.some(match => match.routeId === '/_layout/asset/$assetId');
+
   return (
     <Container maxW="full">
       <Heading size="lg" pt={12}>
         Tài sản
       </Heading>
-      <AddAsset />
-      <AssetsTable />
+      {!isAssetDetailPageActive && (
+        <>
+          <AddAsset />
+          <AssetsTable />
+        </>
+      )}
+      <Outlet />
     </Container>
   )
 }
