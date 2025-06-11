@@ -5,10 +5,16 @@ import {
   Heading,
   Table,
   VStack,
+  IconButton,
+  MenuRoot,
+  MenuTrigger,
+  MenuContent,
 } from "@chakra-ui/react"
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { FiSearch } from "react-icons/fi"
+import { BsThreeDotsVertical } from "react-icons/bs"
+import { FaEdit, FaTrash } from "react-icons/fa"
 import { z } from "zod"
 
 import { ItemsService } from "@/client"
@@ -86,36 +92,67 @@ function AssetsTable() {
 
   return (
     <>
-      <Table.Root size={{ base: "sm", md: "md" }}>
+      <Table.Root size={{ base: "sm", md: "md" }} style={{ background: '#18191B' }}>
         <Table.Header>
-          <Table.Row>
-            <Table.ColumnHeader w="sm">ID</Table.ColumnHeader>
-            <Table.ColumnHeader w="sm">Title</Table.ColumnHeader>
-            <Table.ColumnHeader w="sm">Description</Table.ColumnHeader>
-            <Table.ColumnHeader w="sm">Actions</Table.ColumnHeader>
+          <Table.Row style={{ background: '#18191B' }}>
+            <Table.ColumnHeader w="sm" style={{ background: '#23232B', color: '#fff' }}>Tên tài sản</Table.ColumnHeader>
+            <Table.ColumnHeader w="sm" style={{ background: '#23232B', color: '#fff' }}>Giá trị</Table.ColumnHeader>
+            <Table.ColumnHeader w="sm" style={{ background: '#23232B', color: '#fff' }}>Lợi nhuận tích lũy</Table.ColumnHeader>
+            <Table.ColumnHeader w="sm" style={{ background: '#23232B', color: '#fff' }}>Thời gian đầu tư</Table.ColumnHeader>
+            <Table.ColumnHeader w="sm" style={{ background: '#23232B', color: '#fff' }}>Thao tác</Table.ColumnHeader>
           </Table.Row>
         </Table.Header>
         <Table.Body>
-          {items?.map((item: ItemPublic) => (
-            <Table.Row key={item.id} opacity={isPlaceholderData ? 0.5 : 1}>
-              <Table.Cell truncate maxW="sm">
-                {item.id}
-              </Table.Cell>
-              <Table.Cell truncate maxW="sm">
-                {item.title}
-              </Table.Cell>
-              <Table.Cell
-                color={!item.description ? "gray" : "inherit"}
-                truncate
-                maxW="30%"
+          {items?.map((item: ItemPublic) => {
+            let value = '';
+            let cumulativeReturn = '';
+            let investmentDuration = '';
+            try {
+              if (item.description) {
+                const desc = JSON.parse(item.description);
+                value = desc.value ?? '';
+                cumulativeReturn = desc.cumulativeReturn ?? '';
+                investmentDuration = desc.investmentDuration ?? '';
+              }
+            } catch {}
+            return (
+              <Table.Row
+                key={item.id}
+                opacity={isPlaceholderData ? 0.5 : 1}
+                style={{ background: '#18191B', cursor: 'pointer' }}
+                className="hover:bg-[#23232B] transition-colors"
+                onClick={() => navigate({ to: `/asset/${item.id}` })}
               >
-                {item.description || "N/A"}
-              </Table.Cell>
-              <Table.Cell>
-                <AssetActionsMenu item={item} />
-              </Table.Cell>
-            </Table.Row>
-          ))}
+                <Table.Cell truncate maxW="sm">{item.title}</Table.Cell>
+                <Table.Cell truncate maxW="sm">{value}</Table.Cell>
+                <Table.Cell truncate maxW="sm">{cumulativeReturn}</Table.Cell>
+                <Table.Cell truncate maxW="sm">{investmentDuration}</Table.Cell>
+                <Table.Cell truncate maxW="sm">
+                        <MenuRoot>
+                          <MenuTrigger asChild>
+                            <IconButton variant="ghost" color="inherit" size="sm">
+                              <BsThreeDotsVertical />
+                            </IconButton>
+                          </MenuTrigger>
+                          <MenuContent>
+                            <button
+                              className="flex items-center gap-2 w-full px-4 py-2 text-white hover:bg-[#18191B]"
+                              onClick={() => { handleEdit(idx); }}
+                            >
+                              <FaEdit /> Chỉnh sửa
+                            </button>
+                            <button
+                              className="flex items-center gap-2 w-full px-4 py-2 text-[#FF2A3C] hover:bg-[#18191B]"
+                              onClick={() => { handleDelete(idx); }}
+                            >
+                              <FaTrash /> Xoá
+                            </button>
+                          </MenuContent>
+                        </MenuRoot>
+                  </Table.Cell>
+              </Table.Row>
+            )
+          })}
         </Table.Body>
       </Table.Root>
       <Flex justifyContent="flex-end" mt={4}>
