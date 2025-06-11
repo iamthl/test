@@ -10,7 +10,7 @@ export const system = createSystem(defaultConfig, {
       fontSize: "0.875rem",
       margin: 0,
       padding: 0,
-      backgroundColor: "white",
+      backgroundColor: "#000000",
     },
     ".main-link": {
       color: "ui.main",

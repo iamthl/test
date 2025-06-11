@@ -1,7 +1,7 @@
 import { Box, Flex, Icon, Text } from "@chakra-ui/react"
 import { useQueryClient } from "@tanstack/react-query"
-import { Link as RouterLink } from "@tanstack/react-router"
-import { FiBriefcase, FiHome, FiUsers } from "react-icons/fi"
+import { Link as RouterLink, useRouterState } from "@tanstack/react-router"
+import { FiBriefcase, FiHome, FiUsers, FiTrendingUp } from "react-icons/fi"
 import type { IconType } from "react-icons/lib"
 
 import type { UserPublic } from "@/client"
@@ -9,6 +9,7 @@ import type { UserPublic } from "@/client"
 const items = [
   { icon: FiHome, title: "Tổng quan", path: "/home" },
   { icon: FiBriefcase, title: "Tài sản", path: "/asset" },
+  { icon: FiTrendingUp, title: "Đề xuất đầu tư", path: "/investment-suggestion" },
 ]
 
 interface SidebarItemsProps {
@@ -22,6 +23,10 @@ interface Item {
   path: string
 }
 
+function normalizePath(p: string) {
+  return p.replace(/\/+$/, '');
+}
+
 const SidebarItems = ({ onClose, isHorizontal }: SidebarItemsProps) => {
   const queryClient = useQueryClient()
   const currentUser = queryClient.getQueryData<UserPublic>(["currentUser"])
@@ -30,27 +35,36 @@ const SidebarItems = ({ onClose, isHorizontal }: SidebarItemsProps) => {
     ? [...items, { icon: FiUsers, title: "Admin", path: "/admin" }]
     : items
 
-  const listItems = finalItems.map(({ icon, title, path }) => (
-    <RouterLink key={title} to={path} onClick={onClose}
-      // Apply horizontal specific styles if needed, or rely on parent Flex
-      style={isHorizontal ? { textDecoration: 'none' } : {}}
-    >
-      <Flex
-        gap={isHorizontal ? 2 : 4} // Smaller gap for horizontal menu
-        px={isHorizontal ? 2 : 4} // Smaller padding for horizontal menu
-        py={isHorizontal ? 1 : 2} // Smaller padding for horizontal menu
-        _hover={{
-          background: "gray.subtle",
-        }}
-        alignItems="center"
-        fontSize="sm"
-        flexDirection="row" // Items remain in a row within their link
+  const { location } = useRouterState();
+  const normalizedCurrentPath = normalizePath(location.pathname);
+
+  const listItems = finalItems.map(({ icon, title, path }) => {
+    const normalizedPath = normalizePath(path);
+    const isActive =
+      normalizedCurrentPath === normalizedPath ||
+      (normalizedPath !== '' && normalizedPath !== '/' && normalizedCurrentPath.startsWith(normalizedPath + '/'));
+    return (
+      <RouterLink key={title} to={path} onClick={onClose}
+        style={isHorizontal ? { textDecoration: 'none' } : {}}
       >
-        <Icon as={icon} alignSelf="center" />
-        <Text ml={isHorizontal ? 1 : 2}>{title}</Text> {/* Smaller margin for horizontal */}
-      </Flex>
-    </RouterLink>
-  ))
+        <Flex
+          gap={isHorizontal ? 2 : 4}
+          px={isHorizontal ? 2 : 4}
+          py={isHorizontal ? 1 : 2}
+          _hover={{
+            background: "gray.subtle",
+          }}
+          alignItems="center"
+          fontSize="sm"
+          flexDirection="row"
+          style={isActive ? { color: '#FF2A3C', fontWeight: 'bold' } : {}}
+        >
+          <Icon as={icon} alignSelf="center" />
+          <Text ml={isHorizontal ? 1 : 2}>{title}</Text>
+        </Flex>
+      </RouterLink>
+    );
+  });
 
   // Render horizontally for Navbar, or vertically for mobile drawer/old sidebar
   if (isHorizontal) {

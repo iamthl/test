@@ -3,9 +3,9 @@
 @tailwind utilities;
 
 html {
-  background-color: #f7fafc; /* Chakra UI gray.50 */
+  background-color: #000000 ;
 }
 
 body {
-  background-color: #f7fafc; /* Chakra UI gray.50 */
+  background-color: #000000 ;
 } 

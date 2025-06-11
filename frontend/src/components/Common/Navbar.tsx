@@ -23,7 +23,7 @@ import { // Import Drawer components
 
 function Navbar() {
   const display = useBreakpointValue({ base: "none", md: "flex" })
-  const navbarBg = useColorModeValue("white", "gray.800")
+  const navbarBg = "#18191B"
   const queryClient = useQueryClient()
   const currentUser = queryClient.getQueryData<UserPublic>(["currentUser"])
   const { logout } = useAuth()
