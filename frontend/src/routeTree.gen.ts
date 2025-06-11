@@ -19,9 +19,12 @@ import { Route as HomeImport } from './routes/home'
 import { Route as LayoutImport } from './routes/_layout'
 import { Route as IndexImport } from './routes/index'
 import { Route as LayoutIndexImport } from './routes/_layout/index'
+import { Route as LayoutSettingsImport } from './routes/_layout/settings'
+import { Route as LayoutInvestmentSuggestionImport } from './routes/_layout/investment-suggestion'
 import { Route as LayoutHomeImport } from './routes/_layout/home'
 import { Route as LayoutAssetImport } from './routes/_layout/asset'
 import { Route as LayoutAdminImport } from './routes/_layout/admin'
+import { Route as LayoutAssetAssetIdImport } from './routes/_layout/asset/$assetId'
 
 // Create/Update Routes
 
@@ -65,6 +68,18 @@ const LayoutIndexRoute = LayoutIndexImport.update({
   getParentRoute: () => LayoutRoute,
 } as any)
 
+const LayoutSettingsRoute = LayoutSettingsImport.update({
+  path: '/settings',
+  getParentRoute: () => LayoutRoute,
+} as any)
+
+const LayoutInvestmentSuggestionRoute = LayoutInvestmentSuggestionImport.update(
+  {
+    path: '/investment-suggestion',
+    getParentRoute: () => LayoutRoute,
+  } as any,
+)
+
 const LayoutHomeRoute = LayoutHomeImport.update({
   path: '/home',
   getParentRoute: () => LayoutRoute,
@@ -78,6 +93,11 @@ const LayoutAssetRoute = LayoutAssetImport.update({
 const LayoutAdminRoute = LayoutAdminImport.update({
   path: '/admin',
   getParentRoute: () => LayoutRoute,
+} as any)
+
+const LayoutAssetAssetIdRoute = LayoutAssetAssetIdImport.update({
+  path: '/$assetId',
+  getParentRoute: () => LayoutAssetRoute,
 } as any)
 
 // Populate the FileRoutesByPath interface
@@ -124,9 +144,21 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutHomeImport
       parentRoute: typeof LayoutImport
     }
+    '/_layout/investment-suggestion': {
+      preLoaderRoute: typeof LayoutInvestmentSuggestionImport
+      parentRoute: typeof LayoutImport
+    }
+    '/_layout/settings': {
+      preLoaderRoute: typeof LayoutSettingsImport
+      parentRoute: typeof LayoutImport
+    }
     '/_layout/': {
       preLoaderRoute: typeof LayoutIndexImport
       parentRoute: typeof LayoutImport
+    }
+    '/_layout/asset/$assetId': {
+      preLoaderRoute: typeof LayoutAssetAssetIdImport
+      parentRoute: typeof LayoutAssetImport
     }
   }
 }
@@ -137,8 +169,10 @@ export const routeTree = rootRoute.addChildren([
   IndexRoute,
   LayoutRoute.addChildren([
     LayoutAdminRoute,
-    LayoutAssetRoute,
+    LayoutAssetRoute.addChildren([LayoutAssetAssetIdRoute]),
     LayoutHomeRoute,
+    LayoutInvestmentSuggestionRoute,
+    LayoutSettingsRoute,
     LayoutIndexRoute,
   ]),
   HomeRoute,
