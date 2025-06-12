@@ -9,7 +9,7 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useState } from "react"
 import { type SubmitHandler, useForm } from "react-hook-form"
-import { FaExchangeAlt } from "react-icons/fa"
+import { FaEdit, FaCheck, FaTimes } from "react-icons/fa"
 
 import { type ApiError, type ItemPublic, ItemsService } from "@/client"
 import useCustomToast from "@/hooks/useCustomToast"
@@ -27,18 +27,21 @@ import {
 import { Field } from "../ui/field"
 
 interface EditItemProps {
-  item: ItemPublic
+  item: ItemPublic;
+  onCancel: () => void;
+  onSave: () => void;
 }
 
 interface ItemUpdateForm {
-  title: string
-  description?: string
+  name: string;
+  value: number;
+  cumulativeReturn: number;
+  investmentDuration: string;
 }
 
-const EditItem = ({ item }: EditItemProps) => {
-  const [isOpen, setIsOpen] = useState(false)
-  const queryClient = useQueryClient()
-  const { showSuccessToast } = useCustomToast()
+const EditItem = ({ item, onCancel, onSave }: EditItemProps) => {
+  const queryClient = useQueryClient();
+  const { showSuccessToast } = useCustomToast();
   const {
     register,
     handleSubmit,
@@ -48,104 +51,109 @@ const EditItem = ({ item }: EditItemProps) => {
     mode: "onBlur",
     criteriaMode: "all",
     defaultValues: {
-      ...item,
-      description: item.description ?? undefined,
+      name: item.title,
+      value: item.description
+        ? JSON.parse(item.description).value
+        : undefined,
+      cumulativeReturn: item.description
+        ? JSON.parse(item.description).cumulativeReturn
+        : undefined,
+      investmentDuration: item.description ? JSON.parse(item.description).investmentDuration : "",
     },
-  })
+  });
+
+  console.log("item.description:", item.description);
+  console.log("Parsed value:", item.description ? JSON.parse(item.description).value : undefined);
+  console.log("Parsed cumulativeReturn:", item.description ? JSON.parse(item.description).cumulativeReturn : undefined);
 
   const mutation = useMutation({
-    mutationFn: (data: ItemUpdateForm) =>
-      ItemsService.updateItem({ id: item.id, requestBody: data }),
+    mutationFn: (data: ItemUpdateForm) => {
+      return ItemsService.updateItem({
+        id: item.id,
+        requestBody: {
+          title: data.name,
+          description: JSON.stringify({
+            value: data.value,
+            cumulativeReturn: data.cumulativeReturn,
+            investmentDuration: data.investmentDuration,
+          }),
+        },
+      });
+    },
     onSuccess: () => {
-      showSuccessToast("Item updated successfully.")
-      reset()
-      setIsOpen(false)
+      showSuccessToast("Cập nhật tài sản thành công.");
+      reset();
+      onSave();
     },
     onError: (err: ApiError) => {
-      handleError(err)
+      handleError(err);
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["items"] })
+      queryClient.invalidateQueries({ queryKey: ["items"] });
     },
-  })
+  });
 
-  const onSubmit: SubmitHandler<ItemUpdateForm> = async (data) => {
-    mutation.mutate(data)
-  }
+  const onSubmit: SubmitHandler<ItemUpdateForm> = (data) => {
+    mutation.mutate(data);
+  };
 
   return (
-    <DialogRoot
-      size={{ base: "xs", md: "md" }}
-      placement="center"
-      open={isOpen}
-      onOpenChange={({ open }) => setIsOpen(open)}
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="flex flex-wrap gap-4 items-end bg-[#23232B] p-2 rounded-lg"
     >
-      <DialogTrigger asChild>
-        <Button variant="ghost">
-          <FaExchangeAlt fontSize="16px" />
-          Edit Item
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <DialogHeader>
-            <DialogTitle>Edit Item</DialogTitle>
-          </DialogHeader>
-          <DialogBody>
-            <Text mb={4}>Update the item details below.</Text>
-            <VStack gap={4}>
-              <Field
-                required
-                invalid={!!errors.title}
-                errorText={errors.title?.message}
-                label="Title"
-              >
-                <Input
-                  id="title"
-                  {...register("title", {
-                    required: "Title is required",
-                  })}
-                  placeholder="Title"
-                  type="text"
-                />
-              </Field>
-
-              <Field
-                invalid={!!errors.description}
-                errorText={errors.description?.message}
-                label="Description"
-              >
-                <Input
-                  id="description"
-                  {...register("description")}
-                  placeholder="Description"
-                  type="text"
-                />
-              </Field>
-            </VStack>
-          </DialogBody>
-
-          <DialogFooter gap={2}>
-            <ButtonGroup>
-              <DialogActionTrigger asChild>
-                <Button
-                  variant="subtle"
-                  colorPalette="gray"
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </Button>
-              </DialogActionTrigger>
-              <Button variant="solid" type="submit" loading={isSubmitting}>
-                Save
-              </Button>
-            </ButtonGroup>
-          </DialogFooter>
-        </form>
-        <DialogCloseTrigger />
-      </DialogContent>
-    </DialogRoot>
-  )
-}
+      <div>
+        <label className="block text-sm mb-1 text-white">Tên tài sản</label>
+        <input
+          type="text"
+          {...register("name", { required: true })}
+          className="px-2 py-1 rounded bg-[#18191B] text-white border border-gray-600"
+          required
+        />
+      </div>
+      <div>
+        <label className="block text-sm mb-1 text-white">Giá trị</label>
+        <input
+          type="number"
+          {...register("value", { required: true, valueAsNumber: true })}
+          className="px-2 py-1 rounded bg-[#18191B] text-white border border-gray-600"
+          required
+        />
+      </div>
+      <div>
+        <label className="block text-sm mb-1 text-white">Lợi nhuận tích luỹ</label>
+        <input
+          type="number"
+          {...register("cumulativeReturn", { required: true, valueAsNumber: true })}
+          className="px-2 py-1 rounded bg-[#18191B] text-white border border-gray-600"
+          required
+        />
+      </div>
+      <div>
+        <label className="block text-sm mb-1 text-white">Thời gian đầu tư</label>
+        <input
+          type="date"
+          {...register("investmentDuration", { required: true })}
+          className="px-2 py-1 rounded bg-[#18191B] text-white border border-gray-600"
+          required
+        />
+      </div>
+      <button
+        type="submit"
+        className="bg-[#FF2A3C] text-white font-semibold px-4 py-2 rounded-lg shadow hover:bg-[#e02432] transition-colors mt-2 flex items-center gap-2"
+        disabled={isSubmitting}
+      >
+        <FaCheck /> Lưu
+      </button>
+      <button
+        type="button"
+        className="ml-2 px-4 py-2 rounded-lg border border-gray-600 text-white bg-transparent hover:bg-gray-700 transition-colors mt-2 flex items-center gap-2"
+        onClick={onCancel}
+      >
+        <FaTimes /> Hủy
+      </button>
+    </form>
+  );
+};
 
 export default EditItem

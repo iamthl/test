@@ -2,7 +2,8 @@ import { Button, DialogTitle, Text } from "@chakra-ui/react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
-import { FiTrash2 } from "react-icons/fi"
+import { FaTrash } from "react-icons/fa"
+import { useNavigate } from "@tanstack/react-router"
 
 import { ItemsService } from "@/client"
 import {
@@ -21,6 +22,7 @@ const DeleteItem = ({ id }: { id: string }) => {
   const [isOpen, setIsOpen] = useState(false)
   const queryClient = useQueryClient()
   const { showSuccessToast, showErrorToast } = useCustomToast()
+  const navigate = useNavigate()
   const {
     handleSubmit,
     formState: { isSubmitting },
@@ -33,11 +35,12 @@ const DeleteItem = ({ id }: { id: string }) => {
   const mutation = useMutation({
     mutationFn: deleteItem,
     onSuccess: () => {
-      showSuccessToast("The item was deleted successfully")
+      showSuccessToast("Tài sản đã được xoá thành công.")
       setIsOpen(false)
+      navigate({ to: "/asset" })
     },
     onError: () => {
-      showErrorToast("An error occurred while deleting the item")
+      showErrorToast("Đã xảy ra lỗi khi xoá tài sản.")
     },
     onSettled: () => {
       queryClient.invalidateQueries()
@@ -57,22 +60,24 @@ const DeleteItem = ({ id }: { id: string }) => {
       onOpenChange={({ open }) => setIsOpen(open)}
     >
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" colorPalette="red">
-          <FiTrash2 fontSize="16px" />
-          Delete Item
-        </Button>
+        <button
+          className="flex items-center gap-2 w-full px-4 py-2 text-[#FF2A3C] hover:bg-[#18191B]"
+          onClick={(e) => e.stopPropagation()}
+          data-action-button="true"
+        >
+          <FaTrash /> Xoá
+        </button>
       </DialogTrigger>
 
-      <DialogContent>
+      <DialogContent onClick={(e) => e.stopPropagation()}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogCloseTrigger />
           <DialogHeader>
-            <DialogTitle>Delete Item</DialogTitle>
+            <DialogTitle>Xoá tài sản</DialogTitle>
           </DialogHeader>
           <DialogBody>
             <Text mb={4}>
-              This item will be permanently deleted. Are you sure? You will not
-              be able to undo this action.
+              Tài sản này sẽ bị xoá vĩnh viễn. Bạn có chắc chắn không? Bạn sẽ không thể hoàn tác hành động này.
             </Text>
           </DialogBody>
 
@@ -83,16 +88,20 @@ const DeleteItem = ({ id }: { id: string }) => {
                 colorPalette="gray"
                 disabled={isSubmitting}
               >
-                Cancel
+                Hủy
               </Button>
             </DialogActionTrigger>
             <Button
               variant="solid"
               colorPalette="red"
-              type="submit"
               loading={isSubmitting}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                onSubmit();
+              }}
             >
-              Delete
+              Xoá
             </Button>
           </DialogFooter>
         </form>

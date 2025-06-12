@@ -9,7 +9,7 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { FaPlus } from "react-icons/fa"
 
 import { type ItemCreate, ItemsService } from "@/client"
@@ -29,13 +29,17 @@ import { Field } from "../ui/field"
 
 type AssetForm = {
   name: string;
-  value: number;
-  cumulativeReturn: number;
+  value?: number | null;
+  cumulativeReturn?: number | null;
   investmentDuration: string;
 };
 
-const AddItem = () => {
-  const [showForm, setShowForm] = useState(false);
+interface AddItemProps {
+  showForm: boolean;
+  setShowForm: (show: boolean) => void;
+}
+
+const AddItem = ({ showForm, setShowForm }: AddItemProps) => {
   const queryClient = useQueryClient();
   const { showSuccessToast } = useCustomToast();
   const {
@@ -48,20 +52,29 @@ const AddItem = () => {
     criteriaMode: "all",
     defaultValues: {
       name: "",
-      value: 0,
-      cumulativeReturn: 0,
+      value: undefined,
+      cumulativeReturn: undefined,
       investmentDuration: "",
     },
   });
 
+  useEffect(() => {
+    if (!showForm) {
+      reset();
+    }
+  }, [showForm, reset]);
+
   const mutation = useMutation({
     mutationFn: (data: AssetForm) => {
+      const valueToSave = isNaN(data.value as number) ? null : data.value;
+      const cumulativeReturnToSave = isNaN(data.cumulativeReturn as number) ? null : data.cumulativeReturn;
+
       return ItemsService.createItem({
         requestBody: {
           title: data.name,
           description: JSON.stringify({
-            value: data.value,
-            cumulativeReturn: data.cumulativeReturn,
+            value: valueToSave,
+            cumulativeReturn: cumulativeReturnToSave,
             investmentDuration: data.investmentDuration,
           }),
         },
@@ -114,18 +127,16 @@ const AddItem = () => {
             <label className="block text-sm mb-1 text-white">Giá trị</label>
             <input
               type="number"
-              {...register("value", { required: true })}
+              {...register("value", { valueAsNumber: true })}
               className="px-2 py-1 rounded bg-[#18191B] text-white border border-gray-600"
-              required
             />
           </div>
           <div>
             <label className="block text-sm mb-1 text-white">Lợi nhuận tích luỹ</label>
             <input
               type="number"
-              {...register("cumulativeReturn", { required: true })}
+              {...register("cumulativeReturn", { valueAsNumber: true })}
               className="px-2 py-1 rounded bg-[#18191B] text-white border border-gray-600"
-              required
             />
           </div>
           <div>
