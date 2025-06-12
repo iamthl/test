@@ -20,8 +20,6 @@ const suggestions = [
     riskColor: "bg-[#6C757D] text-white",
     nameColor: "text-[#6C757D]",
     duration: "1 năm",
-    investColor: "bg-[#FF2A3C] text-white",
-    learnColor: "border border-[#FF2A3C] text-[#FF2A3C]",
   },
   {
     name: "Quỹ FTSE Vietnam ETF",
@@ -30,8 +28,6 @@ const suggestions = [
     riskColor: "bg-[#FF2A3C] text-white",
     nameColor: "text-[#FF2A3C]",
     duration: "3 năm",
-    investColor: "bg-[#FF2A3C] text-white",
-    learnColor: "border border-[#FF2A3C] text-[#FF2A3C]",
   },
 ]
 
@@ -52,7 +48,7 @@ function InvestmentSuggestion() {
         <Box className="bg-[#18191B] rounded-2xl p-8 shadow-lg">
           <div className="flex justify-between items-center mb-4">
             <span className="text-xl font-semibold text-white">AI Gợi ý đầu tư</span>
-            <button className="text-[#FF2A3C] font-medium">Xem thêm</button>
+            {/* <button className="text-[#FF2A3C] font-medium">Xem thêm</button> */}
           </div>
             <table className="w-full text-left text-white">
               <thead>
@@ -67,15 +63,15 @@ function InvestmentSuggestion() {
               <tbody>
                 {suggestions.map((s, idx) => (
                   <tr key={s.name} className="border-b border-[#393945]">
-                    <td className={`${s.nameColor} font-semibold`}>{s.name}</td>
+                    <td className={`py-3 ${s.nameColor} font-semibold`}>{s.name}</td>
                     <td>{s.profit}</td>
                     <td>
                       <span className={`px-4 py-1 rounded-lg text-sm font-semibold ${s.riskColor}`}>{s.risk}</span>
                     </td>
                     <td>{s.duration}</td>
                     <td>
-                      <button className="px-5 py-3 rounded-lg font-semibold text-sm shadow {s.investColor} hover:bg-[#e02432] transition-colors">Đầu tư</button>
-                      <button className="px-5 py-3 rounded-lg font-semibold text-sm {s.learnColor} hover:bg-[#000000] hover:border-[#FF2A3C] hover:text-[#FF2A3C] transition-colors">Tìm hiểu</button>
+                      <button className="px-4 py-1 rounded-lg font-semibold text-sm  bg-[#e02432] transition-colors">Đầu tư</button>
+                      <button className="px-4 py-1 rounded-lg font-semibold text-sm  text-white ">Tìm hiểu</button>
                     </td>
                   </tr>
                 ))}

@@ -10,12 +10,15 @@ import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, useNavigate, Outlet, useMatches } from "@tanstack/react-router"
 import { FiSearch } from "react-icons/fi"
 import { z } from "zod"
+import { useState } from "react"
 
 import { ItemsService } from "@/client"
 import { ItemActionsMenu as AssetActionsMenu } from "@/components/Common/AssetActionsMenu"
 import AddAsset from "@/components/Asset/AddAsset"
+import EditAsset from "@/components/Asset/EditAsset"
 import PendingItems from "@/components/Pending/PendingAssets"
 import { ItemPublic } from "@/client/types.gen"
+import { formatCurrency } from "@/utils/format"
 import {
   PaginationItems,
   PaginationNextTrigger,
@@ -42,9 +45,36 @@ export const Route = createFileRoute("/_layout/asset")({
   validateSearch: (search) => itemsSearchSchema.parse(search),
 })
 
-function AssetsTable() {
+interface AssetsTableProps {
+  editingAssetId: string | null;
+  setEditingAssetId: (id: string | null) => void;
+  showAddForm: boolean;
+  setShowAddForm: (show: boolean) => void;
+  items: ItemPublic[];
+  editingItem: ItemPublic | undefined;
+}
+
+function AssetsTable({
+  editingAssetId,
+  setEditingAssetId,
+  showAddForm,
+  setShowAddForm,
+  items,
+  editingItem,
+}: AssetsTableProps) {
   const navigate = useNavigate({ from: Route.fullPath })
   const { page } = Route.useSearch()
+
+  const handleCellClick = (e: React.MouseEvent, itemId: string) => {
+    const target = e.target as HTMLElement;
+    const isActionButton = target.closest('[data-action-button="true"]');
+
+    if (isActionButton) {
+      e.stopPropagation();
+      return;
+    }
+    navigate({ to: `/asset/${itemId}` });
+  };
 
   const { data, isLoading, isPlaceholderData } = useQuery({
     ...getItemsQueryOptions({ page }),
@@ -59,7 +89,6 @@ function AssetsTable() {
       }),
     })
 
-  const items = data?.data.slice(0, PER_PAGE) ?? []
   const count = data?.count ?? 0
 
   if (isLoading) {
@@ -84,6 +113,16 @@ function AssetsTable() {
     )
   }
 
+  const handleEditClick = (itemId: string) => {
+    setEditingAssetId(itemId);
+    setShowAddForm(false);
+  }
+
+  const handleAddClick = () => {
+    setShowAddForm(true);
+    setEditingAssetId(null);
+  }
+
   return (
     <>
       <Table.Root size={{ base: "sm", md: "md" }} style={{ background: '#18191B' }}>
@@ -98,14 +137,14 @@ function AssetsTable() {
         </Table.Header>
         <Table.Body>
           {items?.map((item: ItemPublic) => {
-            let value = '';
-            let cumulativeReturn = '';
+            let value: number | null = null;
+            let cumulativeReturn: number | null = null;
             let investmentDuration = '';
             try {
               if (item.description) {
                 const desc = JSON.parse(item.description);
-                value = desc.value ?? '';
-                cumulativeReturn = desc.cumulativeReturn ?? '';
+                value = typeof desc.value === 'number' ? desc.value : null;
+                cumulativeReturn = typeof desc.cumulativeReturn === 'number' ? desc.cumulativeReturn : null;
                 investmentDuration = desc.investmentDuration ?? '';
               }
             } catch {}
@@ -114,15 +153,14 @@ function AssetsTable() {
                 key={item.id}
                 opacity={isPlaceholderData ? 0.5 : 1}
                 style={{ background: '#18191B', cursor: 'pointer' }}
-                className="hover:bg-[#23232B] transition-colors"
-                onClick={() => navigate({ to: `/asset/${item.id}` })}
+                className="hover:text-[#FF2A3C] transition-colors"
               >
-                <Table.Cell truncate maxW="sm">{item.title}</Table.Cell>
-                <Table.Cell truncate maxW="sm">{value}</Table.Cell>
-                <Table.Cell truncate maxW="sm">{cumulativeReturn}</Table.Cell>
-                <Table.Cell truncate maxW="sm">{investmentDuration}</Table.Cell>
+                <Table.Cell truncate maxW="sm" onClick={(e) => handleCellClick(e, item.id)}>{item.title}</Table.Cell>
+                <Table.Cell truncate maxW="sm" onClick={(e) => handleCellClick(e, item.id)}>{value !== null ? `${formatCurrency(value)} VND` : ''}</Table.Cell>
+                <Table.Cell truncate maxW="sm" onClick={(e) => handleCellClick(e, item.id)}>{cumulativeReturn !== null ? `${cumulativeReturn}%` : ''}</Table.Cell>
+                <Table.Cell truncate maxW="sm" onClick={(e) => handleCellClick(e, item.id)}>{investmentDuration}</Table.Cell>
                 <Table.Cell truncate maxW="sm">
-                  <AssetActionsMenu item={item} />
+                  <AssetActionsMenu item={item} onEditClick={() => handleEditClick(item.id)} />
                 </Table.Cell>
               </Table.Row>
             )
@@ -149,16 +187,50 @@ function AssetsTable() {
 function Assets() {
   const matches = useMatches();
   const isAssetDetailPageActive = matches.some(match => match.routeId === '/_layout/asset/$assetId');
+  const [editingAssetId, setEditingAssetId] = useState<string | null>(null);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const { page } = Route.useSearch();
+  const { data, isLoading, isPlaceholderData } = useQuery({
+    ...getItemsQueryOptions({ page }),
+    placeholderData: (prevData) => prevData,
+  });
+  const items = data?.data.slice(0, PER_PAGE) ?? [];
+  const editingItem = items.find(item => item.id === editingAssetId);
+
+  const handleEditClick = (itemId: string) => {
+    setEditingAssetId(itemId);
+    setShowAddForm(false);
+  }
+
+  const handleAddClick = () => {
+    setShowAddForm(true);
+    setEditingAssetId(null);
+  }
 
   return (
     <Container maxW="full">
-      <Heading size="lg" pt={12}>
-        Tài sản
-      </Heading>
       {!isAssetDetailPageActive && (
         <>
-          <AddAsset />
-          <AssetsTable />
+          {!editingAssetId && (
+            <AddAsset showForm={showAddForm} setShowForm={setShowAddForm} />
+          )}
+          {editingAssetId && editingItem && (
+            <div className="mb-4">
+              <EditAsset
+                item={editingItem}
+                onCancel={() => setEditingAssetId(null)}
+                onSave={() => setEditingAssetId(null)}
+              />
+            </div>
+          )}
+          <AssetsTable
+            editingAssetId={editingAssetId}
+            setEditingAssetId={setEditingAssetId}
+            showAddForm={showAddForm}
+            setShowAddForm={setShowAddForm}
+            items={items}
+            editingItem={editingItem}
+          />
         </>
       )}
       <Outlet />

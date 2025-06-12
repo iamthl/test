@@ -3,7 +3,7 @@ import { createFileRoute, useParams, useNavigate } from "@tanstack/react-router"
 import { Container, Box, Heading, Flex, Text, Button, VStack, Skeleton, Table } from "@chakra-ui/react"
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from "@chakra-ui/tabs"
 import { ItemsService } from "@/client"
-import { FaArrowDown, FaArrowUp, FaPlus, FaPiggyBank, FaChartLine, FaBuilding, FaGlobe, FaCalendarAlt, FaArrowLeft } from "react-icons/fa"
+import { FaArrowDown, FaArrowUp, FaPlus, FaPiggyBank, FaChartLine, FaBuilding, FaGlobe, FaCalendarAlt, FaArrowLeft, FaUpload } from "react-icons/fa"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export const Route = createFileRoute("/_layout/asset/$assetId")({
@@ -30,7 +30,7 @@ const mockFinancialReportData = [
 ];
 
 function AssetDetailPage() {
-  const { assetId } = useParams("/_layout/asset/$assetId")
+  const { assetId } = Route.useParams()
   const navigate = useNavigate()
   const { data: asset, isLoading } = useQuery({
     queryKey: ["asset", assetId],
@@ -79,7 +79,7 @@ function AssetDetailPage() {
         mb={4}
       >
         <FaArrowLeft style={{ color: 'white', marginRight: '8px' }} />
-        Quay lại trang tài sản
+        Quay lại 
       </Button>
 
       {/* Summary Card */}
@@ -92,28 +92,36 @@ function AssetDetailPage() {
             </Text>
           </Flex>
           <Flex gap={2}>
-            <Button colorScheme="red" variant="solid" size="sm" leftIcon={<FaArrowUp />}>Rút tiền</Button>
-            <Button colorScheme="red" variant="outline" size="sm" leftIcon={<FaPlus />}>Thêm tiền</Button>
-            <Button colorScheme="gray" variant="outline" size="sm" leftIcon={<FaChartLine />}>Gợi ý đầu tư</Button>
+            <Button className="bg-[#FF2A3C] text-white font-semibold px-4 py-2 rounded-lg shadow hover:bg-[#e02432] transition-colors flex items-center gap-2"
+            >
+              <FaPlus style={{ marginRight: '3px' }} />
+              Thêm tài sản
+            </Button>
+            <Button className=" borderColor-[#FF2A3C] border-2 text-white font-semibold px-4 py-2 rounded-lg shadow transition-colors flex items-center gap-2"
+            >
+              <FaUpload style={{ marginRight: '3px' }} />
+              Rút tiền
+            </Button>
+
           </Flex>
         </Flex>
         <Flex gap={8}>
-          <VStack align="start" spacing={1}>
+          <Flex direction="column" align="start" gap="1">
             <Text color="#fff" fontSize="md">Giá trị</Text>
-            <Text color="#fff" fontWeight="bold" fontSize="lg">{value ? `${value}₫` : <Skeleton w={20} />}</Text>
-          </VStack>
-          <VStack align="start" spacing={1}>
+            <Text color="#fff" fontWeight="bold" fontSize="lg">{value ? `${value} VND` : <Skeleton w={20} />}</Text>
+          </Flex>
+          <Flex direction="column" align="start" gap="1">
             <Text color="#fff" fontSize="md">Lợi nhuận tích lũy</Text>
             <Text color="#17C964" fontWeight="bold" fontSize="lg">
               {cumulativeReturn ? `${cumulativeReturn}%` : <Skeleton w={12} />}
             </Text>
-          </VStack>
-          <VStack align="start" spacing={1}>
+          </Flex>
+          <Flex direction="column" align="start" gap="1">
             <Text color="#fff" fontSize="md">Thời gian đầu tư</Text>
             <Text color="#fff" fontWeight="bold" fontSize="lg">
               {investmentDuration || <Skeleton w={12} />}
             </Text>
-          </VStack>
+          </Flex>
         </Flex>
       </Box>
 
@@ -157,7 +165,6 @@ function AssetDetailPage() {
                 strokeWidth={2}
                 dot={false}
                 isAnimationActive={false}
-                filter={(value, index) => mockPriceData[index].trend === 'up'}
               />
               <Line
                 type="monotone"
@@ -166,7 +173,6 @@ function AssetDetailPage() {
                 strokeWidth={2}
                 dot={false}
                 isAnimationActive={false}
-                filter={(value, index) => mockPriceData[index].trend === 'down'}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -176,8 +182,8 @@ function AssetDetailPage() {
       {/* Info Cards and Financial Report Tabs */}
       <Box bg="#18191B" borderRadius="lg" p={6} boxShadow="md">
         <Tabs variant="unstyled">
-          <TabList borderBottom="1px solid #23232B" mb={4}>
-            <Tab _selected={{ color: '#FF2A3C', fontWeight: 'bold', borderBottom: '2px solid #FF2A3C' }} color="#fff" px={4} py={2}>Tổng quan</Tab>
+          <TabList borderBottom="1px solid #23232B" mb={25}>
+            <Tab _selected={{ color: '#FF2A3C', fontWeight: 'bold', borderBottom: '2px solid #FF2A3C' }} color="#fff" px={4} py={2} mr="25px">Tổng quan</Tab>
             <Tab _selected={{ color: '#FF2A3C', fontWeight: 'bold', borderBottom: '2px solid #FF2A3C' }} color="#fff" px={4} py={2}>Báo cáo tài chính</Tab>
           </TabList>
           <TabPanels>
