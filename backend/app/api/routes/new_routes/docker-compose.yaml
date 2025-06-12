@@ -1,0 +1,242 @@
+services:
+  # Traefik service
+  traefik:
+    image: traefik:v3.0
+    container_name: traefik
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080" # Traefik Dashboard
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik-public-certificates:/certificates
+    command:
+      - --api.insecure=true
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --accesslog=true
+      - --log.level=DEBUG # Good for debugging
+    networks:
+      - traefik-public
+
+  user_service:
+    build: ../../../../user_service
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.user-service-http.rule=PathPrefix(`/user`)"
+      - "traefik.http.routers.user-service-http.entrypoints=web"
+      - "traefik.http.services.user-service.loadbalancer.server.port=8000"
+    depends_on:
+      customer_db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql+psycopg://user:password@customer_db:5432/customer_db"
+    networks:
+      - traefik-public
+
+  portfolio_service:
+    build: ../../../../portfolio_service
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.portfolio-service-http.rule=PathPrefix(`/portfolio`)"
+      - "traefik.http.routers.portfolio-service-http.entrypoints=web"
+      - "traefik.http.services.portfolio-service.loadbalancer.server.port=8000"
+    depends_on:
+      portfolio_db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql+psycopg://user:password@portfolio_db:5432/portfolio_db"
+    networks:
+      - traefik-public
+
+  market_data_service:
+    build: ../../../../market_data_service
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.market-data-service-http.rule=PathPrefix(`/market-data`)"
+      - "traefik.http.routers.market-data-service-http.entrypoints=web"
+      - "traefik.http.services.market-data-service.loadbalancer.server.port=8000"
+    depends_on:
+      market_data_db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql+psycopg://user:password@market_data_db:5432/market_data_db"
+    networks:
+      - traefik-public
+
+  transaction_service:
+    build: ../../../../transaction_service
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.transaction-service-http.rule=PathPrefix(`/transaction`)"
+      - "traefik.http.routers.transaction-service-http.entrypoints=web"
+      - "traefik.http.services.transaction-service.loadbalancer.server.port=8000"
+    depends_on:
+      transaction_db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql+psycopg://user:password@transaction_db:5432/transaction_db"
+    networks:
+      - traefik-public
+
+  ai_recommendation_service:
+    build: ../../../../ai_recommendation_service
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ai-recommendation-service-http.rule=PathPrefix(`/ai`)"
+      - "traefik.http.routers.ai-recommendation-service-http.entrypoints=web"
+      - "traefik.http.services.ai-recommendation-service.loadbalancer.server.port=8000"
+    depends_on:
+      - user_service
+      - portfolio_service
+      - market_data_service
+    environment:
+      CUSTOMER_SERVICE_URL: "http://user_service:8000"
+      PORTFOLIO_SERVICE_URL: "http://portfolio_service:8000"
+      MARKET_DATA_SERVICE_URL: "http://market_data_service:8000"
+    networks:
+      - traefik-public
+
+  # Kafka and Zookeeper
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    hostname: zookeeper
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - traefik-public
+
+  broker:
+    image: confluentinc/cp-kafka:7.5.0
+    hostname: broker
+    container_name: broker
+    ports:
+      - "9092:9092"
+      - "9101:9101" # Port for local network
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+    networks:
+      - traefik-public
+
+  # Databases for Microservices
+  customer_db:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_DB: customer_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5433:5432" # Host port: 5433, Container port: 5432
+    volumes:
+      - customer_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d customer_db"]
+      interval: 5s
+      retries: 5
+      start_period: 10s
+      timeout: 5s
+    networks:
+      - traefik-public
+
+  asset_catalog_db:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_DB: asset_catalog_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5434:5432" # Host port: 5434, Container port: 5432
+    volumes:
+      - asset_catalog_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d asset_catalog_db"]
+      interval: 5s
+      retries: 5
+      start_period: 10s
+      timeout: 5s
+    networks:
+      - traefik-public
+
+  market_data_db:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_DB: market_data_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5435:5432" # Host port: 5435, Container port: 5432
+    volumes:
+      - market_data_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d market_data_db"]
+      interval: 5s
+      retries: 5
+      start_period: 10s
+      timeout: 5s
+    networks:
+      - traefik-public
+
+  transaction_db:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_DB: transaction_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5436:5432" # Host port: 5436, Container port: 5432
+    volumes:
+      - transaction_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d transaction_db"]
+      interval: 5s
+      retries: 5
+      start_period: 10s
+      timeout: 5s
+    networks:
+      - traefik-public
+
+  portfolio_db:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_DB: portfolio_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5437:5432" # Host port: 5437, Container port: 5432
+    volumes:
+      - portfolio_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d portfolio_db"]
+      interval: 5s
+      retries: 5
+      start_period: 10s
+      timeout: 5s
+    networks:
+      - traefik-public
+
+volumes:
+  traefik-public-certificates: # New volume for Traefik certs
+  customer_db_data:
+  asset_catalog_db_data:
+  market_data_db_data:
+  transaction_db_data:
+  portfolio_db_data:
+
+networks:
+  traefik-public:
+    external: true # Allows Traefik to connect to other services if they are in this network

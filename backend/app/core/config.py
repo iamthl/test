@@ -38,6 +38,11 @@ class Settings(BaseSettings):
     FRONTEND_HOST: str = "http://localhost:5173"
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
 
+    # Service URLs
+    MARKET_DATA_SERVICE_URL: str = "http://localhost:8000"
+    PORTFOLIO_SERVICE_URL: str = "http://localhost:8002"
+    RECOMMENDATION_SERVICE_URL: str = "http://localhost:8005"
+
     BACKEND_CORS_ORIGINS: Annotated[
         list[AnyUrl] | str, BeforeValidator(parse_cors)
     ] = []

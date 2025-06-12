@@ -29,6 +29,4 @@ COPY . /app/
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync
 
-COPY prestart.sh /app/prestart.sh
-
-CMD ["/app/prestart.sh"] 
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"] 

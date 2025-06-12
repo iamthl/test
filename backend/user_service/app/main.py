@@ -50,7 +50,8 @@ def create_db_and_tables():
 # --- FastAPI App Initialization ---
 app = FastAPI(
     title="User Service",
-    description="Manages user information, authentication, and risk appetite."
+    description="Manages user information, authentication, and risk appetite.",
+    root_path="/user"
 )
 
 # --- Dependency to get DB Session ---
