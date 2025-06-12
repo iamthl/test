@@ -44,7 +44,7 @@ export const Route = createFileRoute("/_layout/investment-suggestion")({
 function InvestmentSuggestion() {
   return (
     <Container maxW="full">
-      <Box pt={12} m={4}>
+      <Box pt={5} m={4}>
         <Box className="bg-[#18191B] rounded-2xl p-8 shadow-lg">
           <div className="flex justify-between items-center mb-4">
             <span className="text-xl font-semibold text-white">AI Gợi ý đầu tư</span>
@@ -70,7 +70,7 @@ function InvestmentSuggestion() {
                     </td>
                     <td>{s.duration}</td>
                     <td>
-                      <button className="px-4 py-1 rounded-lg font-semibold text-sm  bg-[#e02432] transition-colors">Đầu tư</button>
+                      <button className="px-4 py-1 rounded-lg font-semibold text-sm  hover:bg-[#e02432] bg-[#FF2A3C] transition-colors">Đầu tư</button>
                       <button className="px-4 py-1 rounded-lg font-semibold text-sm  text-white ">Tìm hiểu</button>
                     </td>
                   </tr>

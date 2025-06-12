@@ -31,7 +31,7 @@ const UserMenu = () => {
                 closeOnSelect
                 value="user-settings"
                 gap={2}
-                py={2}
+                py={4}
                 style={{ cursor: "pointer" }}
               >
                 <FiUser fontSize="18px" />

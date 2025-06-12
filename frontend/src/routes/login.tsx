@@ -87,6 +87,12 @@ function Login() {
               })}
               placeholder="Email"
               type="email"
+              bg="#18191B"
+              color="white"
+              border="1px"
+              borderColor="#393945"
+              _focus={{ borderColor: "#4299E1" }}
+              _hover={{ borderColor: "#4299E1" }}
             />
           </InputGroup>
         </Field>
@@ -96,11 +102,26 @@ function Login() {
           {...register("password", passwordRules())}
           placeholder="Password"
           errors={errors}
+          bg="#18191B"
+          color="white"
+          border="1px"
+          borderColor="#393945"
+          _focus={{ borderColor: "#4299E1" }}
+          _hover={{ borderColor: "#4299E1" }}
         />
         <RouterLink to="/recover-password" className="main-link">
           Forgot Password?
         </RouterLink>
-        <Button variant="solid" type="submit" loading={isSubmitting} size="md">
+        <Button
+          variant="solid"
+          type="submit"
+          loading={isSubmitting}
+          size="md"
+          bg="#FF2A3C"
+          color="white"
+          _hover={{ bg: "#e02432" }}
+          _active={{ bg: "#c41c2c" }}
+        >
           Log In
         </Button>
         <Text>

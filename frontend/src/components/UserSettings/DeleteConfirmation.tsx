@@ -58,7 +58,17 @@ const DeleteConfirmation = () => {
         onOpenChange={({ open }) => setIsOpen(open)}
       >
         <DialogTrigger asChild>
-          <Button variant="solid" colorPalette="red" mt={4}>
+          <Button
+            variant="solid"
+            mt={4}
+            py={2}
+            px={4}
+            rounded="md"
+            bg="#FF2A3C"
+            color="white"
+            _hover={{ bg: "#e02432" }}
+            _active={{ bg: "#c41c2c" }}
+          >
             Delete
           </Button>
         </DialogTrigger>
@@ -85,15 +95,24 @@ const DeleteConfirmation = () => {
                     variant="subtle"
                     colorPalette="gray"
                     disabled={isSubmitting}
+                    py={2}
+                    px={4}
+                    rounded="md"
                   >
                     Cancel
                   </Button>
                 </DialogActionTrigger>
                 <Button
                   variant="solid"
-                  colorPalette="red"
+                  py={2}
+                  px={4}
+                  rounded="md"
                   type="submit"
                   loading={isSubmitting}
+                  bg="#FF2A3C"
+                  color="white"
+                  _hover={{ bg: "#e02432" }}
+                  _active={{ bg: "#c41c2c" }}
                 >
                   Delete
                 </Button>

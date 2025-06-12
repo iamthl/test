@@ -14,14 +14,14 @@ const Appearance = () => {
         </Heading>
 
         <RadioGroup
-          onValueChange={(e) => setTheme(e.value)}
+          onValueChange={(e) => setTheme(e.value as string)}
           value={theme}
-          colorPalette="teal"
+          colorPalette="red"
         >
           <Stack>
-            <Radio value="system">System</Radio>
-            <Radio value="light">Light Mode</Radio>
-            <Radio value="dark">Dark Mode</Radio>
+            <Radio value="system" color="white">System</Radio>
+            <Radio value="light" color="white">Light Mode</Radio>
+            <Radio value="dark" color="white">Dark Mode</Radio>
           </Stack>
         </RadioGroup>
       </Container>

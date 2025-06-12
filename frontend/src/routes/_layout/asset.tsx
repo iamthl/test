@@ -125,7 +125,7 @@ function AssetsTable({
 
   return (
     <>
-      <Table.Root size={{ base: "sm", md: "md" }} style={{ background: '#18191B' }}>
+      <Table.Root size={{ base: "sm", md: "md" }} style={{ background: '#18191B'}}>
         <Table.Header>
           <Table.Row style={{ background: '#18191B' }}>
             <Table.ColumnHeader w="sm" style={{ background: '#23232B', color: '#fff' }}>Tên tài sản</Table.ColumnHeader>
@@ -152,7 +152,7 @@ function AssetsTable({
               <Table.Row
                 key={item.id}
                 opacity={isPlaceholderData ? 0.5 : 1}
-                style={{ background: '#18191B', cursor: 'pointer' }}
+                style={{ background: '#18191B', cursor: 'pointer', borderBottom: '1px solid #393945' }}
                 className="hover:text-[#FF2A3C] transition-colors"
               >
                 <Table.Cell truncate maxW="sm" onClick={(e) => handleCellClick(e, item.id)}>{item.title}</Table.Cell>

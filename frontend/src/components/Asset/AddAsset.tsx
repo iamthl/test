@@ -99,7 +99,7 @@ const AddItem = ({ showForm, setShowForm }: AddItemProps) => {
 
   return (
     <>
-      <div className="flex justify-end mb-4">
+      <div className="flex justify-end mb-4 mt-5">
         {!showForm && (
           <button
             className="bg-[#FF2A3C] text-white font-semibold px-4 py-2 rounded-lg shadow hover:bg-[#e02432] transition-colors flex items-center gap-2"

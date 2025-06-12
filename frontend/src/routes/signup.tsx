@@ -87,6 +87,12 @@ function SignUp() {
                 })}
                 placeholder="Full Name"
                 type="text"
+                bg="#18191B"
+                color="white"
+                border="1px"
+                borderColor="#393945"
+                _focus={{ borderColor: "#4299E1" }}
+                _hover={{ borderColor: "#4299E1" }}
               />
             </InputGroup>
           </Field>
@@ -101,6 +107,12 @@ function SignUp() {
                 })}
                 placeholder="Email"
                 type="email"
+                bg="#18191B"
+                color="white"
+                border="1px"
+                borderColor="#393945"
+                _focus={{ borderColor: "#4299E1" }}
+                _hover={{ borderColor: "#4299E1" }}
               />
             </InputGroup>
           </Field>
@@ -110,6 +122,12 @@ function SignUp() {
             {...register("password", passwordRules())}
             placeholder="Password"
             errors={errors}
+            bg="#18191B"
+            color="white"
+            border="1px"
+            borderColor="#393945"
+            _focus={{ borderColor: "#4299E1" }}
+            _hover={{ borderColor: "#4299E1" }}
           />
           <PasswordInput
             type="confirm_password"
@@ -117,8 +135,22 @@ function SignUp() {
             {...register("confirm_password", confirmPasswordRules(getValues))}
             placeholder="Confirm Password"
             errors={errors}
+            bg="#18191B"
+            color="white"
+            border="1px"
+            borderColor="#393945"
+            _focus={{ borderColor: "#4299E1" }}
+            _hover={{ borderColor: "#4299E1" }}
           />
-          <Button variant="solid" type="submit" loading={isSubmitting}>
+          <Button
+            variant="solid"
+            type="submit"
+            loading={isSubmitting}
+            bg="#FF2A3C"
+            color="white"
+            _hover={{ bg: "#e02432" }}
+            _active={{ bg: "#c41c2c" }}
+          >
             Sign Up
           </Button>
           <Text>

@@ -127,15 +127,29 @@ const UserInformation = () => {
               type={editMode ? "button" : "submit"}
               loading={editMode ? isSubmitting : false}
               disabled={editMode ? !isDirty || !getValues("email") : false}
+              py={2}
+              px={4}
+              rounded="md"
+              bg="#FF2A3C"
+              color="white"
+              _hover={{ bg: "#e02432" }}
+              _active={{ bg: "#c41c2c" }}
             >
               {editMode ? "Save" : "Edit"}
             </Button>
             {editMode && (
               <Button
                 variant="subtle"
-                colorPalette="gray"
                 onClick={onCancel}
                 disabled={isSubmitting}
+                py={2}
+                px={4}
+                rounded="md"
+                bg="transparent"
+                border="1px"
+                borderColor="gray.600"
+                color="white"
+                _hover={{ bg: "gray.700" }}
               >
                 Cancel
               </Button>

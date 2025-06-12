@@ -165,7 +165,7 @@ const Home: React.FC = () => {
   const data = { ...mockData, assets };
 
   return (
-    <div className="p-6 bg-[#000000]">
+    <div className="p-6 bg-[#000000] mt-3">
       {/* Top summary cards row: Tổng tài sản and Phân bổ tài sản */}
       <div className="flex flex-col md:flex-row gap-6 mb-6">
         {/* Tổng tài sản + Risk Level Card */}

@@ -55,6 +55,12 @@ const ChangePassword = () => {
               {...register("current_password", passwordRules())}
               placeholder="Current Password"
               errors={errors}
+              bg="#18191B"
+              color="white"
+              border="1px"
+              borderColor="#393945"
+              _focus={{ borderColor: "#4299E1" }}
+              _hover={{ borderColor: "#4299E1" }}
             />
             <PasswordInput
               type="new_password"
@@ -62,6 +68,12 @@ const ChangePassword = () => {
               {...register("new_password", passwordRules())}
               placeholder="New Password"
               errors={errors}
+              bg="#18191B"
+              color="white"
+              border="1px"
+              borderColor="#393945"
+              _focus={{ borderColor: "#4299E1" }}
+              _hover={{ borderColor: "#4299E1" }}
             />
             <PasswordInput
               type="confirm_password"
@@ -69,6 +81,12 @@ const ChangePassword = () => {
               {...register("confirm_password", confirmPasswordRules(getValues))}
               placeholder="Confirm Password"
               errors={errors}
+              bg="#18191B"
+              color="white"
+              border="1px"
+              borderColor="#393945"
+              _focus={{ borderColor: "#4299E1" }}
+              _hover={{ borderColor: "#4299E1" }}
             />
           </VStack>
           <Button
@@ -77,6 +95,13 @@ const ChangePassword = () => {
             type="submit"
             loading={isSubmitting}
             disabled={!isValid}
+            py={2}
+            px={4}
+            rounded="md"
+            bg="#FF2A3C"
+            color="white"
+            _hover={{ bg: "#e02432" }}
+            _active={{ bg: "#c41c2c" }}
           >
             Save
           </Button>

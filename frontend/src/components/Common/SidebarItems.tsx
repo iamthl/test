@@ -69,7 +69,7 @@ const SidebarItems = ({ onClose, isHorizontal }: SidebarItemsProps) => {
   // Render horizontally for Navbar, or vertically for mobile drawer/old sidebar
   if (isHorizontal) {
     return (
-      <Flex alignItems="center" gap={0}> {/* Gap controlled by internal item padding */}
+      <Flex alignItems="center" gap={7}> {/* Gap controlled by internal item padding */}
         {listItems}
       </Flex>
     )

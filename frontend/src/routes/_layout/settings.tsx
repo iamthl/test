@@ -30,16 +30,16 @@ function UserSettings() {
 
   return (
     <Container maxW="full">
-      <Heading size="lg" textAlign={{ base: "center", md: "left" }} py={12}>
+      <Heading size="lg" textAlign={{ base: "center", md: "left" }} py={10} fontWeight="bold" fontSize="18px">
         User Settings
       </Heading>
       <Tabs.Root defaultValue="my-profile" variant="subtle">
-        <Tabs.List className="flex border-b border-gray-700 dark:border-gray-800 mb-8">
+        <Tabs.List borderBottom="1px solid #23232B" mb={30}>
           {finalTabs.map((tab) => (
             <Tabs.Trigger
               key={tab.value}
               value={tab.value}
-              className="px-4 py-2 font-medium text-base focus:outline-none transition border-b-2 -mb-px border-transparent text-gray-400 hover:text-[#FF2A3C] hover:border-[#FF2A3C] data-[state=active]:border-[#FF2A3C] data-[state=active]:text-[#FF2A3C] data-[state=active]:font-bold"
+              className="px-4 py-2 font-medium text-base focus:outline-none transition border-b-2 -mb-px border-transparent text-white hover:text-[#FF2A3C] hover:border-[#FF2A3C] data-[state=active]:border-[#FF2A3C] data-[state=active]:text-[#FF2A3C] data-[state=active]:font-bold"
             >
               {tab.title}
             </Tabs.Trigger>
