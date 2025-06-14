@@ -1,7 +1,7 @@
 [project]
-name = "app"
+name = "market_data_service"
 version = "0.1.0"
-description = ""
+description = "Market Data Service for the financial microservice project"
 requires-python = ">=3.10,<4.0"
 dependencies = [
     "fastapi[standard]<1.0.0,>=0.114.2",
@@ -22,6 +22,7 @@ dependencies = [
     "pydantic-settings<3.0.0,>=2.2.1",
     "sentry-sdk[fastapi]<2.0.0,>=1.40.6",
     "pyjwt<3.0.0,>=2.8.0",
+    "vnstock==3.2.6",
 ]
 
 [tool.uv]

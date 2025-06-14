@@ -6,17 +6,19 @@ from typing import List, Optional, Any
 from fastapi import FastAPI, HTTPException, Depends, status, Header
 from sqlmodel import Field, Session, SQLModel, create_engine, select, func
 
-from .models import DBHolding, Portfolio, PortfolioHolding, User  # Import all necessary models
+from .models import DBHolding, Portfolio, PortfolioHolding, User, InstrumentType  # Import all necessary models
 
 # --- Pydantic Models for Holdings (for API request bodies) ---
 class PortfolioHoldingCreate(SQLModel):
     symbol: str
+    instrument_type: InstrumentType
     quantity: float
     average_cost: float
 
 class PortfolioHoldingUpdate(SQLModel):
     quantity: Optional[float] = None
     average_cost: Optional[float] = None
+    instrument_type: InstrumentType
 
 # --- Database Setup ---
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@localhost:5437/portfolio_db")
@@ -59,7 +61,7 @@ async def shutdown_event():
 
 # --- API Endpoints ---
 
-@app.get("/")
+@app.get("/portfolio/")
 async def read_root():
     return {"message": "Welcome to the Portfolio Service!"}
 
@@ -86,10 +88,14 @@ async def create_holding(
         select(DBHolding)
         .where(DBHolding.user_id == user_id)
         .where(DBHolding.symbol == holding_in.symbol)
+        .where(DBHolding.instrument_type == holding_in.instrument_type)
     ).first()
 
     if existing_holding:
-        raise HTTPException(status_code=409, detail=f"Holding for symbol {holding_in.symbol} already exists for this user. Use PUT to update.")
+        raise HTTPException(
+            status_code=409, 
+            detail=f"Holding for symbol {holding_in.symbol} of type {holding_in.instrument_type} already exists for this user. Use PUT to update."
+        )
 
     holding = DBHolding.model_validate(holding_in, update={
         "user_id": user_id,
