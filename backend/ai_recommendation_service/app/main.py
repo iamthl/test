@@ -4,7 +4,8 @@ from datetime import datetime, date, timedelta
 import asyncio
 from typing import List, Dict, Optional
 
-import httpx
+import httpx # Keep httpx for async operations
+import requests # Add requests for synchronous operations
 from fastapi import FastAPI, HTTPException, Depends, Header
 from pydantic import BaseModel
 import torch
@@ -12,6 +13,7 @@ import torch.nn as nn
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 import joblib # Import joblib for saving/loading scaler
+import numpy as np
 
 from .models import UserPublic, PortfolioHolding, Portfolio, PriceData, Recommendation, LSTMModel  # Import all necessary models
 from .data_processing import preprocess_data, inverse_transform_data
@@ -70,25 +72,25 @@ async def fetch_market_data(symbol: str) -> Optional[PriceData]:
             print(f"Warning: Network error fetching market data for {symbol}: {e}")
             return None
 
-async def fetch_historical_price_data(symbol: str, instrument_type: str, start_date: date, end_date: date) -> List[Dict]:
-    async with httpx.AsyncClient() as client:
-        try:
-            # Adjust the endpoint based on how market_data_service exposes historical data
-            # Assuming an endpoint like /market-data/historical/{instrument_type}/{symbol}?start_date=...&end_date=...
-            response = await client.get(
-                f"{MARKET_DATA_SERVICE_URL}/market-data/historical/{symbol}",
-                params={
-                    "start_date": start_date.isoformat(),
-                    "end_date": end_date.isoformat(),
-                    "instrument_type": instrument_type
-                }
-            )
-            response.raise_for_status()
-            return response.json()["data"]
-        except httpx.HTTPStatusError as e:
-            raise HTTPException(status_code=e.response.status_code, detail=f"Market Data Service error: {e.response.text}")
-        except httpx.RequestError as e:
-            raise HTTPException(status_code=500, detail=f"Network error with Market Data Service: {e}")
+def fetch_historical_price_data(symbol: str, instrument_type: str, start_date: date, end_date: date) -> List[Dict]:
+    try:
+        # Adjust the endpoint based on how market_data_service exposes historical data
+        # Assuming an endpoint like /market-data/historical/{instrument_type}/{symbol}?start_date=...&end_date=...
+        response = requests.get(
+            f"{MARKET_DATA_SERVICE_URL}/market-data/historical/{symbol}",
+            params={
+                "start_date": start_date.isoformat(),
+                "end_date": end_date.isoformat(),
+                "instrument_type": instrument_type
+            }
+        )
+        response.raise_for_status()
+        return response.json()["data"]
+    except requests.exceptions.HTTPError as e:
+        raise HTTPException(status_code=e.response.status_code, detail=f"Market Data Service error: {e.response.text}")
+    except requests.exceptions.RequestException as e:
+        print(e)
+        raise HTTPException(status_code=500, detail=f"Network error with Market Data Service: {e}")
 
 # --- Mock ML/Recommendation Logic (Replace with actual ML model) ---
 async def generate_mock_recommendations(
@@ -162,7 +164,7 @@ async def _train_model(
     # Fetch historical data
     actual_end_date = end_date if end_date else date.today()
     start_date = actual_end_date - timedelta(days=365 * 5) # Fetch 5 years of data
-    historical_data_response = await fetch_historical_price_data(symbol, instrument_type, start_date, actual_end_date)
+    historical_data_response = fetch_historical_price_data(symbol, instrument_type, start_date, actual_end_date)
     
     if not historical_data_response:
         raise ValueError(f"No historical data found for {symbol} ({instrument_type}). Cannot train model.")
@@ -209,11 +211,11 @@ async def _train_model(
 
 # --- API Endpoints ---
 
-@app.get("/")
+@app.get("/ai/")
 async def read_root():
     return {"message": "Welcome to the AI Recommendation Service!"}
 
-@app.get("/recommendations/{user_id}", response_model=List[Recommendation])
+@app.get("/ai/recommendations/{user_id}", response_model=List[Recommendation])
 async def get_recommendations_for_user(user_id: uuid.UUID, current_user_id: uuid.UUID = Depends(get_current_user_id)):
     """
     Generates and retrieves investment recommendations for a specific user.
@@ -260,9 +262,10 @@ class TrainingRequest(BaseModel):
 class PredictionRequest(BaseModel):
     symbol: str
     instrument_type: str # e.g., "VN_STOCK", "VN_INDEX", "INTERNATIONAL_INDEX", "FOREX"
+    prediction_length: int = 1 # New argument for how many future steps to predict
 
 
-@app.post("/train")
+@app.post("/ai/train")
 async def train_model(request: TrainingRequest):
     try:
         await _train_model(
@@ -278,7 +281,7 @@ async def train_model(request: TrainingRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/predict")
+@app.post("/ai/predict")
 async def predict_price(request: PredictionRequest):
     try:
         model_config = MODEL_CONFIG.get(request.instrument_type.lower())
@@ -321,8 +324,9 @@ async def predict_price(request: PredictionRequest):
 
         # Fetch recent historical data for prediction input
         end_date = date.today()
-        start_date = end_date - timedelta(days=sequence_length * 2) # Fetch enough data to form sequence
-        historical_data = await fetch_historical_price_data(request.symbol, request.instrument_type, start_date, end_date)
+        # Fetch enough data to form the initial sequence
+        initial_start_date = end_date - timedelta(days=sequence_length * 2) # Fetch enough data for robustness
+        historical_data = fetch_historical_price_data(request.symbol, request.instrument_type, initial_start_date, end_date)
         
         if not historical_data:
             raise HTTPException(status_code=400, detail="Not enough historical data to make a prediction.")
@@ -334,21 +338,31 @@ async def predict_price(request: PredictionRequest):
         # Use 'close' price for prediction
         price_data = df['close'].values.reshape(-1, 1)
 
-        # Use the loaded scaler to transform the prediction input
-        scaled_price_data = scaler.transform(price_data) # Use transform, not fit_transform
+        # Use the loaded scaler to transform the historical input
+        scaled_price_data = scaler.transform(price_data)
         
         if len(scaled_price_data) < sequence_length:
-            raise HTTPException(status_code=400, detail="Not enough historical data to form a sequence for prediction.")
+            raise HTTPException(status_code=400, detail="Not enough historical data to form initial sequence for prediction.")
 
-        input_sequence = scaled_price_data[-sequence_length:]
-        input_tensor = torch.tensor(input_sequence, dtype=torch.float32).unsqueeze(0) # Add batch dimension
-
-        with torch.no_grad():
-            prediction = model(input_tensor)
+        # Initialize the input sequence for multi-step prediction
+        current_sequence = torch.tensor(scaled_price_data[-sequence_length:], dtype=torch.float32).unsqueeze(0) # (1, sequence_length, 1)
         
-        predicted_price = scaler.inverse_transform(prediction.numpy())
+        predictions = []
 
-        return {"predicted_price": predicted_price[0][0]}
+        for _ in range(request.prediction_length):
+            with torch.no_grad():
+                # Make a single step prediction
+                predicted_scaled_value = model(current_sequence).squeeze(0).cpu().numpy()
+                print(f"Predicted scaled value: {predicted_scaled_value}")
+            # Append the new prediction to the input sequence and remove the oldest value
+            # The new input sequence will be (sequence_length-1) old values + 1 new prediction
+            current_sequence = torch.cat((current_sequence[:, 1:, :], torch.tensor(predicted_scaled_value, dtype=torch.float32).reshape(1, 1, 1)), dim=1)
+            predictions.append(predicted_scaled_value.item())
+
+        # Inverse transform all collected predictions
+        predicted_prices = scaler.inverse_transform(np.array(predictions).reshape(-1, 1)).flatten().tolist()
+        print(f"Predicted prices: {predicted_prices}")
+        return {"predicted_prices": predicted_prices}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) 
